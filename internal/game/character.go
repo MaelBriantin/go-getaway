@@ -36,6 +36,9 @@ func (c *Character) IsCharacterAlive() bool {
 }
 
 func (c *Character) TakeDamage(damage int) {
+	if damage < 0 {
+		return
+	}
 	c.Health -= damage
 	if c.Health < 0 {
 		c.Health = 0
@@ -43,6 +46,9 @@ func (c *Character) TakeDamage(damage int) {
 }
 
 func (c *Character) GainHealth(amount int) {
+	if amount < 0 {
+		return
+	}
 	c.Health += amount
 	if c.Health > c.MaxHealth {
 		c.Health = c.MaxHealth

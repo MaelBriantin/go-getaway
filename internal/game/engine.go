@@ -89,6 +89,10 @@ func hurt(character *Character) Character {
 	var damage int
 	fmt.Print("> ")
 	fmt.Scanln(&damage)
+	if damage <= 0 {
+		fmt.Println("Damage amount must be greater than 0.")
+		return *character
+	}
 	character.TakeDamage(damage)
 	fmt.Printf("%s took %d damage. Current HP: %d\n", character.Name, damage, character.Health)
 	return *character
