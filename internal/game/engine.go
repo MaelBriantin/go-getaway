@@ -3,15 +3,50 @@ package game
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/manifoldco/promptui"
 )
+
+func askForName() string {
+	fmt.Println("Please enter your character's name:")
+	fmt.Print("> ")
+	var name string
+	fmt.Scanln(&name)
+	if len(name) == 0 {
+		fmt.Println("Name cannot be empty. Please try again.")
+		return askForName()
+	}
+	return name
+}
+
+func askForClass() Class {
+	prompt := promptui.Select{
+		Label: "Choose your class",
+		Items: []string{
+		Warrior.Name,
+		Mage.Name,
+		Rogue.Name,
+		},
+	}
+	_, result, err := prompt.Run()
+	if err != nil {
+		fmt.Println("Prompt failed:", err)
+		return askForClass()
+	}
+	class, err := GetClassByName(result)
+	if err != nil {
+		fmt.Println("Unknown class:", result)
+		return askForClass()
+	}
+	fmt.Printf("You choose %q\n", result)
+	return class
+}
 
 func Start() {
 	for {
-		fmt.Println("Please enter your character's name:")
-		fmt.Print("> ")
-		var name string
-		fmt.Scanln(&name)
-		character := CreateCharacter(name)
+		name := askForName()
+		class := askForClass()
+		character := CreateCharacter(name, class)
 		fmt.Printf("Welcome, %s! Your adventure begins now.\n", character.Name)
 
 		result := loop(character)
@@ -61,7 +96,11 @@ func help() {
 }
 
 func heal(character *Character) {
-	fmt.Println("Enter health amount to gain (max "+ strconv.Itoa(character.MaxHealth-character.Health) + "):")
+	if character.Health == character.MaxHealth {
+		fmt.Println("You are already at full health.")
+		return
+	}
+	fmt.Println("Enter health amount to gain (max " + strconv.Itoa(int(character.MaxHealth-character.Health)) + "):")
 	var health int
 	fmt.Print("> ")
 	fmt.Scanln(&health)
@@ -69,8 +108,8 @@ func heal(character *Character) {
 		fmt.Println("Health amount must be greater than 0.")
 		return
 	}
-	if health > (character.MaxHealth - character.Health) {
-		health = character.MaxHealth - character.Health
+	if health > (int(character.MaxHealth - character.Health)) {
+		health = int(character.MaxHealth - character.Health)
 	}
 	character.GainHealth(health)
 	fmt.Printf("%s gained %d HP. Current HP: %d\n", character.Name, health, character.Health)
@@ -103,13 +142,13 @@ func (c *Character) Hud() {
 	maxHealth := c.MaxHealth
 	healthBar := ""
 	for range healt {
-		healthBar += "❤️ "
+		healthBar += " ❤️ "
 	}
 	for i := healt; i < maxHealth; i++ {
-		healthBar += "🩶 "
+		healthBar += " 🩶 "
 	}
 	fmt.Printf("\n")
-	fmt.Printf("%s: %s\n", c.Name, healthBar)
+	fmt.Printf("%s(%s):%s\n", c.Name, c.Class.Name, healthBar)
 	fmt.Printf("> ")
 }
 
